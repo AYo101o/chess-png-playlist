@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "migrate": "ts-node src/migrate.ts",
+    "start": "ts-node src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -24,7 +26,8 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.20.3",
+    "@types/pg": "^8.23.1",
     "ts-node": "^10.9.2",
-    "typescript": "^7.0.2"
+    "typescript": "^5.5.3"
   }
 }
