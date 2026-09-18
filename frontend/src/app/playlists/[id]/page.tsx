@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { apiFetch } from '@/lib/api';
+import PgnBoard from '@/components/PgnBoard';
 
 interface Pgn {
   id: number;
@@ -28,6 +29,7 @@ export default function PlaylistDetail() {
   const [title, setTitle] = useState('');
   const [pgnText, setPgnText] = useState('');
   const [error, setError] = useState('');
+  const [selectedPgn, setSelectedPgn] = useState<Pgn | null>(null);
 
   useEffect(() => {
     if (!loading && !token) router.push('/login');
@@ -68,6 +70,7 @@ export default function PlaylistDetail() {
       await apiFetch(`/playlists/${playlistId}/pgns/${pgnId}`, token!, {
         method: 'DELETE',
       });
+      if (selectedPgn?.id === pgnId) setSelectedPgn(null);
       fetchPlaylist();
     } catch (err: any) {
       setError(err.message);
@@ -106,20 +109,34 @@ export default function PlaylistDetail() {
 
       <ul className="space-y-2">
         {playlist.pgns.map((p) => (
-          <li key={p.id} className="border rounded p-4 flex justify-between items-center">
-            <span className="font-medium">{p.title}</span>
-            <button
-              onClick={() => handleDeletePgn(p.id)}
-              className="text-sm text-red-500"
-            >
-              Delete
-            </button>
+          <li key={p.id} className="border rounded p-4">
+            <div className="flex justify-between items-center">
+              <button
+                onClick={() => setSelectedPgn(p)}
+                className="font-medium hover:underline text-left"
+              >
+                {p.title}
+              </button>
+              <button
+                onClick={() => handleDeletePgn(p.id)}
+                className="text-sm text-red-500"
+              >
+                Delete
+              </button>
+            </div>
           </li>
         ))}
       </ul>
 
       {playlist.pgns.length === 0 && (
         <p className="text-gray-500">No PGNs yet — add one above.</p>
+      )}
+
+      {selectedPgn && (
+        <div className="mt-8 border-t pt-8">
+          <h2 className="font-semibold mb-4">{selectedPgn.title}</h2>
+          <PgnBoard pgn={selectedPgn.pgn_text} />
+        </div>
       )}
     </main>
   );
