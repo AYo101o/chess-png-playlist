@@ -1,0 +1,126 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/auth-context';
+import { apiFetch } from '@/lib/api';
+
+interface Pgn {
+  id: number;
+  title: string;
+  pgn_text: string;
+  created_at: string;
+}
+
+interface PlaylistDetail {
+  id: number;
+  name: string;
+  pgns: Pgn[];
+}
+
+export default function PlaylistDetail() {
+  const params = useParams();
+  const playlistId = params.id as string;
+  const { token, loading } = useAuth();
+  const router = useRouter();
+
+  const [playlist, setPlaylist] = useState<PlaylistDetail | null>(null);
+  const [title, setTitle] = useState('');
+  const [pgnText, setPgnText] = useState('');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!loading && !token) router.push('/login');
+  }, [loading, token, router]);
+
+  useEffect(() => {
+    if (token) fetchPlaylist();
+  }, [token]);
+
+  async function fetchPlaylist() {
+    try {
+      const data = await apiFetch(`/playlists/${playlistId}`, token!);
+      setPlaylist(data);
+    } catch (err: any) {
+      setError(err.message);
+    }
+  }
+
+  async function handleAddPgn(e: React.FormEvent) {
+    e.preventDefault();
+    if (!title.trim() || !pgnText.trim()) return;
+
+    try {
+      await apiFetch(`/playlists/${playlistId}/pgns`, token!, {
+        method: 'POST',
+        body: JSON.stringify({ title, pgn_text: pgnText }),
+      });
+      setTitle('');
+      setPgnText('');
+      fetchPlaylist();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  }
+
+  async function handleDeletePgn(pgnId: number) {
+    try {
+      await apiFetch(`/playlists/${playlistId}/pgns/${pgnId}`, token!, {
+        method: 'DELETE',
+      });
+      fetchPlaylist();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  }
+
+  if (loading || !playlist) return <p className="p-12">Loading...</p>;
+
+  return (
+    <main className="max-w-2xl mx-auto p-12">
+      <a href="/playlists" className="text-sm text-gray-500 underline">
+        ← Back to playlists
+      </a>
+      <h1 className="text-2xl font-bold mt-2 mb-8">{playlist.name}</h1>
+
+      <form onSubmit={handleAddPgn} className="flex flex-col gap-3 mb-8">
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Title (e.g. Sicilian Najdorf line)"
+          className="border rounded px-4 py-2"
+        />
+        <textarea
+          value={pgnText}
+          onChange={(e) => setPgnText(e.target.value)}
+          placeholder="Paste PGN here (e.g. 1. e4 c5 2. Nf3 d6 ...)"
+          className="border rounded px-4 py-2 h-32 font-mono text-sm"
+        />
+        <button type="submit" className="bg-black text-white rounded px-4 py-2">
+          Add PGN
+        </button>
+      </form>
+
+      {error && <p className="text-red-500 mb-4">{error}</p>}
+
+      <ul className="space-y-2">
+        {playlist.pgns.map((p) => (
+          <li key={p.id} className="border rounded p-4 flex justify-between items-center">
+            <span className="font-medium">{p.title}</span>
+            <button
+              onClick={() => handleDeletePgn(p.id)}
+              className="text-sm text-red-500"
+            >
+              Delete
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      {playlist.pgns.length === 0 && (
+        <p className="text-gray-500">No PGNs yet — add one above.</p>
+      )}
+    </main>
+  );
+}
