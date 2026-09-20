@@ -39,7 +39,6 @@ export default function Playlists() {
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     if (!newName.trim()) return;
-
     try {
       await apiFetch('/playlists', token!, {
         method: 'POST',
@@ -61,14 +60,20 @@ export default function Playlists() {
     }
   }
 
-  if (loading) return <p className="p-12">Loading...</p>;
+  if (loading) return <p className="p-12 text-neutral-400">Loading...</p>;
 
   return (
-    <main className="max-w-2xl mx-auto p-12">
+    <main className="max-w-2xl mx-auto p-8 sm:p-12">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold">Your Playlists</h1>
-        <button onClick={logout} className="text-sm text-gray-500 underline">
-          Logout ({user?.email})
+        <div>
+          <h1 className="text-2xl font-semibold">Your Playlists</h1>
+          <p className="text-sm text-neutral-500">{user?.email}</p>
+        </div>
+        <button
+          onClick={logout}
+          className="text-sm text-neutral-400 hover:text-white transition"
+        >
+          Logout
         </button>
       </div>
 
@@ -78,24 +83,30 @@ export default function Playlists() {
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           placeholder="New playlist name"
-          className="flex-1 border rounded px-4 py-2"
+          className="flex-1 border border-neutral-700 rounded-lg px-4 py-2.5 outline-none focus:border-emerald-500 transition"
         />
-        <button type="submit" className="bg-black text-white px-4 py-2 rounded">
+        <button
+          type="submit"
+          className="bg-emerald-600 hover:bg-emerald-500 transition text-white px-5 py-2.5 rounded-lg font-medium"
+        >
           Create
         </button>
       </form>
 
-      {error && <p className="text-red-500 mb-4">{error}</p>}
+      {error && <p className="text-red-400 mb-4">{error}</p>}
 
       <ul className="space-y-2">
         {playlists.map((p) => (
-          <li key={p.id} className="border rounded p-4 flex justify-between items-center">
-            <a href={`/playlists/${p.id}`} className="font-medium hover:underline">
+          <li
+            key={p.id}
+            className="bg-neutral-900 border border-neutral-800 rounded-xl p-4 flex justify-between items-center hover:border-neutral-700 transition"
+          >
+            <a href={`/playlists/${p.id}`} className="font-medium hover:text-emerald-400 transition">
               {p.name}
             </a>
             <button
               onClick={() => handleDelete(p.id)}
-              className="text-sm text-red-500"
+              className="text-sm text-red-400 hover:text-red-300 transition"
             >
               Delete
             </button>
@@ -104,7 +115,7 @@ export default function Playlists() {
       </ul>
 
       {playlists.length === 0 && !error && (
-        <p className="text-gray-500">No playlists yet — create one above.</p>
+        <p className="text-neutral-500">No playlists yet — create one above.</p>
       )}
     </main>
   );
