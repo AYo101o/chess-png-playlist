@@ -56,6 +56,12 @@ export default function Login() {
         <button type="submit" className="bg-black text-white rounded px-4 py-2">
           Login
         </button>
+        <p className="text-sm text-center mt-2">
+  Don't have an account?{' '}
+  <a href="/register" className="underline">
+    Sign up
+  </a>
+</p>
       </form>
     </main>
   );

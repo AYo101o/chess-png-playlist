@@ -56,6 +56,12 @@ export default function Register() {
         <button type="submit" className="bg-black text-white rounded px-4 py-2">
           Register
         </button>
+        <p className="text-sm text-center mt-2">
+  Already have an account?{' '}
+  <a href="/login" className="underline">
+    Login
+  </a>
+</p>
       </form>
     </main>
   );
