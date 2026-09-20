@@ -26,12 +26,12 @@ export default function PlaylistDetail() {
   const { token, loading } = useAuth();
   const router = useRouter();
 
-  const [mode, setMode] = useState<'view' | 'practice'>('view');
   const [playlist, setPlaylist] = useState<PlaylistDetail | null>(null);
   const [title, setTitle] = useState('');
   const [pgnText, setPgnText] = useState('');
   const [error, setError] = useState('');
   const [selectedPgn, setSelectedPgn] = useState<Pgn | null>(null);
+  const [mode, setMode] = useState<'view' | 'practice'>('view');
 
   useEffect(() => {
     if (!loading && !token) router.push('/login');
@@ -79,6 +79,11 @@ export default function PlaylistDetail() {
     }
   }
 
+  function openPgn(p: Pgn, targetMode: 'view' | 'practice') {
+    setSelectedPgn(p);
+    setMode(targetMode);
+  }
+
   if (loading || !playlist) return <p className="p-12">Loading...</p>;
 
   return (
@@ -111,20 +116,32 @@ export default function PlaylistDetail() {
 
       <ul className="space-y-2">
         {playlist.pgns.map((p) => (
-          <li key={p.id} className="border rounded p-4">
+          <li
+            key={p.id}
+            className={`border rounded p-4 ${selectedPgn?.id === p.id ? 'border-black' : ''}`}
+          >
             <div className="flex justify-between items-center">
-              <button
-                onClick={() => setSelectedPgn(p)}
-                className="font-medium hover:underline text-left"
-              >
-                {p.title}
-              </button>
-              <button
-                onClick={() => handleDeletePgn(p.id)}
-                className="text-sm text-red-500"
-              >
-                Delete
-              </button>
+              <span className="font-medium">{p.title}</span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => openPgn(p, 'view')}
+                  className="text-sm px-2 py-1 border rounded"
+                >
+                  View
+                </button>
+                <button
+                  onClick={() => openPgn(p, 'practice')}
+                  className="text-sm px-2 py-1 border rounded bg-black text-white"
+                >
+                  Practice
+                </button>
+                <button
+                  onClick={() => handleDeletePgn(p.id)}
+                  className="text-sm text-red-500"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </li>
         ))}
@@ -135,31 +152,31 @@ export default function PlaylistDetail() {
       )}
 
       {selectedPgn && (
-  <div className="mt-8 border-t pt-8">
-    <div className="flex justify-between items-center mb-4">
-      <h2 className="font-semibold">{selectedPgn.title}</h2>
-      <div className="flex gap-2">
-        <button
-          onClick={() => setMode('view')}
-          className={`text-sm px-3 py-1 rounded border ${mode === 'view' ? 'bg-black text-white' : ''}`}
-        >
-          View
-        </button>
-        <button
-          onClick={() => setMode('practice')}
-          className={`text-sm px-3 py-1 rounded border ${mode === 'practice' ? 'bg-black text-white' : ''}`}
-        >
-          Practice
-        </button>
-      </div>
-    </div>
-    {mode === 'view' ? (
-      <PgnBoard pgn={selectedPgn.pgn_text} />
-    ) : (
-      <PracticeBoard pgn={selectedPgn.pgn_text} />
-    )}
-  </div>
-)}
+        <div className="mt-8 border-t pt-8">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="font-semibold">{selectedPgn.title}</h2>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setMode('view')}
+                className={`text-sm px-3 py-1 rounded border ${mode === 'view' ? 'bg-black text-white' : ''}`}
+              >
+                View
+              </button>
+              <button
+                onClick={() => setMode('practice')}
+                className={`text-sm px-3 py-1 rounded border ${mode === 'practice' ? 'bg-black text-white' : ''}`}
+              >
+                Practice
+              </button>
+            </div>
+          </div>
+          {mode === 'view' ? (
+            <PgnBoard key={selectedPgn.id} pgn={selectedPgn.pgn_text} />
+          ) : (
+            <PracticeBoard key={selectedPgn.id} pgn={selectedPgn.pgn_text} />
+          )}
+        </div>
+      )}
     </main>
   );
 }
