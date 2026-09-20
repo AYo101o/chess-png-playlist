@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { apiFetch } from '@/lib/api';
 import PgnBoard from '@/components/PgnBoard';
+import PracticeBoard from '@/components/PracticeBoard';
 
 interface Pgn {
   id: number;
@@ -25,6 +26,7 @@ export default function PlaylistDetail() {
   const { token, loading } = useAuth();
   const router = useRouter();
 
+  const [mode, setMode] = useState<'view' | 'practice'>('view');
   const [playlist, setPlaylist] = useState<PlaylistDetail | null>(null);
   const [title, setTitle] = useState('');
   const [pgnText, setPgnText] = useState('');
@@ -133,11 +135,31 @@ export default function PlaylistDetail() {
       )}
 
       {selectedPgn && (
-        <div className="mt-8 border-t pt-8">
-          <h2 className="font-semibold mb-4">{selectedPgn.title}</h2>
-          <PgnBoard pgn={selectedPgn.pgn_text} />
-        </div>
-      )}
+  <div className="mt-8 border-t pt-8">
+    <div className="flex justify-between items-center mb-4">
+      <h2 className="font-semibold">{selectedPgn.title}</h2>
+      <div className="flex gap-2">
+        <button
+          onClick={() => setMode('view')}
+          className={`text-sm px-3 py-1 rounded border ${mode === 'view' ? 'bg-black text-white' : ''}`}
+        >
+          View
+        </button>
+        <button
+          onClick={() => setMode('practice')}
+          className={`text-sm px-3 py-1 rounded border ${mode === 'practice' ? 'bg-black text-white' : ''}`}
+        >
+          Practice
+        </button>
+      </div>
+    </div>
+    {mode === 'view' ? (
+      <PgnBoard pgn={selectedPgn.pgn_text} />
+    ) : (
+      <PracticeBoard pgn={selectedPgn.pgn_text} />
+    )}
+  </div>
+)}
     </main>
   );
 }
