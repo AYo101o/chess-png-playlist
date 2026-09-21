@@ -32,6 +32,7 @@ export default function PlaylistDetail() {
   const [error, setError] = useState('');
   const [selectedPgn, setSelectedPgn] = useState<Pgn | null>(null);
   const [mode, setMode] = useState<'view' | 'practice'>('view');
+  const [editingPgn, setEditingPgn] = useState<Pgn | null>(null);
 
   useEffect(() => {
     if (!loading && !token) router.push('/login');
@@ -49,6 +50,36 @@ export default function PlaylistDetail() {
       setError(err.message);
     }
   }
+
+  async function handleUpdatePgn(e: React.FormEvent) {
+  e.preventDefault();
+  if (!editingPgn || !title.trim() || !pgnText.trim()) return;
+
+  try {
+    await apiFetch(`/playlists/${playlistId}/pgns/${editingPgn.id}`, token!, {
+      method: 'PUT',
+      body: JSON.stringify({ title, pgn_text: pgnText }),
+    });
+    setEditingPgn(null);
+    setTitle('');
+    setPgnText('');
+    fetchPlaylist();
+  } catch (err: any) {
+    setError(err.message);
+  }
+}
+
+function startEdit(p: Pgn) {
+  setEditingPgn(p);
+  setTitle(p.title);
+  setPgnText(p.pgn_text);
+}
+
+function cancelEdit() {
+  setEditingPgn(null);
+  setTitle('');
+  setPgnText('');
+}
 
   async function handleAddPgn(e: React.FormEvent) {
     e.preventDefault();
@@ -93,7 +124,7 @@ export default function PlaylistDetail() {
       </a>
       <h1 className="text-2xl font-semibold mt-2 mb-8">{playlist.name}</h1>
 
-      <form onSubmit={handleAddPgn} className="flex flex-col gap-3 mb-8">
+      <form onSubmit={editingPgn ? handleUpdatePgn : handleAddPgn} className="flex flex-col gap-3 mb-8">
         <input
           type="text"
           value={title}
@@ -107,12 +138,23 @@ export default function PlaylistDetail() {
           placeholder="Paste PGN here (e.g. 1. e4 c5 2. Nf3 d6 ...)"
           className="border border-neutral-700 rounded-lg px-4 py-2.5 h-32 font-mono text-sm outline-none focus:border-emerald-500 transition"
         />
-        <button
-          type="submit"
-          className="bg-emerald-600 hover:bg-emerald-500 transition text-white rounded-lg px-4 py-2.5 font-medium"
-        >
-          Add PGN
-        </button>
+        <div className="flex gap-2">
+  <button
+    type="submit"
+    className="bg-emerald-600 hover:bg-emerald-500 transition text-white rounded-lg px-4 py-2.5 font-medium"
+  >
+    {editingPgn ? 'Save Changes' : 'Add PGN'}
+  </button>
+  {editingPgn && (
+    <button
+      type="button"
+      onClick={cancelEdit}
+      className="border border-neutral-700 hover:border-neutral-500 transition rounded-lg px-4 py-2.5 font-medium"
+    >
+      Cancel
+    </button>
+  )}
+</div>
       </form>
 
       {error && <p className="text-red-400 mb-4">{error}</p>}
@@ -148,6 +190,12 @@ export default function PlaylistDetail() {
                 >
                   Practice
                 </button>
+                <button
+  onClick={() => startEdit(p)}
+  className="text-sm px-3 py-1.5 rounded-lg border border-neutral-700 hover:border-neutral-500 transition"
+>
+  Edit
+</button>
                 <button
                   onClick={() => handleDeletePgn(p.id)}
                   className="text-sm text-red-400 hover:text-red-300 transition"
